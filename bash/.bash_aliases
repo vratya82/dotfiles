@@ -1,0 +1,16 @@
+# ~/.bash_aliases
+
+alias ls='ls --color=auto'
+alias dir='dir --color=auto'
+alias vdir='vdir --color=auto'
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+alias cls='clear'
+alias clr='clear'
+alias ll='ls -lhF --color=auto'
+alias la='ls -A'
+alias gs='git status'
+alias ..='cd ..'
+alias nv='nvim'
+alias rs='source ~/.bashrc'

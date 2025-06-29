@@ -1,0 +1,76 @@
+"$schema" = "https://starship.rs/config-schema.json"
+
+# ➕ Prompt Layout
+add_newline = false
+format = """
+$os$directory$git_branch$git_status$nodejs$python$rust$cmd_duration
+$character
+"""
+
+# 🎯 Prompt character
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+# 🐧 Distro icon
+[os]
+disabled = false
+style = "bold blue"
+format = "[󰕈](bg:none fg:#88c0d0)"  # change to your distro icon
+# More icons: https://www.nerdfonts.com/cheat-sheet
+
+# 📁 Directory
+[directory]
+style = "bold fg:#a3be8c"
+truncation_length = 3
+format = "[$path ]($style)"
+
+# 🌱 Git branch
+[git_branch]
+symbol = ""
+style = "bold fg:#ebcb8b"
+format = "[$symbol $branch ]($style)"
+
+# 🧩 Git status
+[git_status]
+style = "bold fg:#d08770"
+format = "[$all_status$ahead_behind ]($style)"
+
+# 🐍 Python
+[python]
+symbol = ""
+style = "bold fg:#b48ead"
+format = "[$symbol $virtualenv ]($style)"
+detect_extensions = ["py"]
+detect_files = ["pyproject.toml", "requirements.txt"]
+
+# 🦀 Rust
+[rust]
+symbol = "🦀"
+style = "bold fg:#d08770"
+format = "[$symbol $version ]($style)"
+detect_extensions = ["rs"]
+
+# 📦 Node.js
+[nodejs]
+symbol = ""
+style = "bold fg:#8fbcbb"
+format = "[$symbol $version ]($style)"
+detect_extensions = ["js", "ts", "mjs"]
+
+# ⏱ Command duration
+[cmd_duration]
+min_time = 100
+style = "fg:#88c0d0"
+format = "[⏱ $duration]($style)"
+
+# 🎯 Disable unused modules
+[package]
+disabled = true
+
+[hostname]
+disabled = true
+
+[username]
+disabled = true
+
