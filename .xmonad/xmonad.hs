@@ -18,7 +18,7 @@ main = do
     { terminal           = theTerminal
     , modMask            = modKey
     , workspaces         = myWorkspaces
-    , borderWidth        = 2
+    , borderWidth        = 4
     , normalBorderColor  = colorNormalBorder
     , focusedBorderColor = colorFocusedBorder
     
