@@ -1,0 +1,14 @@
+# ========================
+# Build artifacts
+# ========================
+
+# XMonad
+/xmonad-*-linux
+/build-*-linux/
+/xmonad.errors
+*.o
+*.hi
+
+# Andere algemene zaken
+*.log
+*~
