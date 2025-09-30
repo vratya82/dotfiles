@@ -17,15 +17,18 @@ myKeys =
     , ((modKey .|. shiftMask, xK_t), withFocused $ windows . W.sink)
     , ((modKey, xK_f), withFocused (\w -> windows (W.float w (W.RationalRect 0 0 1 1))))
 
+    -- Screenshot keybinding (PrintScreen)
+    , ((0, xK_Print), spawn "scrot ~/Pictures//screenshots/screenshot-%Y-%m-%d-%H%M%S.png")
+
     -- Applicatie-sneltoetsen
-    , ((modKey, xK_F1), spawn "firefox")
+    , ((modKey, xK_F1), spawn "chromium")
     , ((modKey, xK_F2), spawn "thunderbird")
     , ((modKey, xK_F3), spawn "thunar")
     , ((modKey, xK_F4), spawn "keepassxc")
     , ((modKey, xK_F5), spawn "virt-manager")
-    , ((modKey, xK_F6), spawn (theTerminal ++ " -e yazi"))
-    , ((modKey, xK_F7), spawn (theTerminal ++ " -e nvim"))
-    , ((modKey, xK_F8), spawn (theTerminal ++ " -e ranger"))
+    , ((modKey, xK_F6), spawn "calibre")
+    , ((modKey, xK_F7), spawn "anki")
+    , ((modKey, xK_F8), spawn "obsidian")
     , ((modKey, xK_F9), spawn (theTerminal ++ " -e bmon"))
     , ((modKey, xK_F10), spawn (theTerminal ++ " -e htop"))
     , ((modKey, xK_F11), spawn "syncthing")

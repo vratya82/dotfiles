@@ -15,6 +15,6 @@ theLayout = avoidStruts $
   gaps [(U,8), (D,8), (L,8), (R,8)] $
   spacing 8 $
   onWorkspace "θ" (noBorders Full) $
-  Grid ||| tiled ||| Mirror tiled ||| noBorders Full
+  Grid ||| tiled ||| Mirror tiled ||| noBorders Full 
   where
     tiled = Tall 1 (3/100) (1/2)

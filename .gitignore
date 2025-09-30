@@ -4,6 +4,7 @@
 
 # XMonad
 /xmonad-*-linux
+/xmonad-x86_64-linux
 /build-*-linux/
 /xmonad.errors
 *.o

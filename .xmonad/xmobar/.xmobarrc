@@ -1,46 +1,49 @@
 Config
   { font = "JetBrainsMono Nerd Font 14"
   , additionalFonts =
-      [ "Font Awesome 6 Free Solid 14"
-      , "Noto Sans Mono 14"
+      [ "Noto Sans Mono 14"
+      , "Font Awesome 6 Free Solid 14"
       ]
-  , bgColor = "#1e1e2e"  -- solid dark for now (no transparency yet)
+  , bgColor = "#1e1e2e"
   , fgColor = "#cdd6f4"
-  , position = Top
+  , alpha  = 255              -- zet bv. 230 als je lichte transparantie wil
+  , position = Top            -- TopSize C 100 28 is ook prima als je vaste hoogte wil
   , border = NoBorder
   , lowerOnStart = True
   , hideOnStart = False
   , persistent = True
-  , allDesktops = True
+  , allDesktops = True        -- laat docks/struts op alle desktops gelden
+  , overrideRedirect = True   -- voorkom window-manager borders/shadows
 
   , commands =
       [ Run StdinReader
-      , Run Cpu
-          [ "-t", "CPU: <total>%"
-          , "-L", "20"
-          , "-H", "75"
-          , "--low", "#a6e3a1"
-          , "--normal", "#f9e2af"
-          , "--high", "#f38ba8"
-          ] 10
-      , Run Memory
-          [ "-t", "RAM: <used>M (<usedratio>%)" ] 10
-      , Run Date "%A %d %B %H:%M" "date" 10
-      , Run Weather "EGLL"
-          [ "-t", "<skyCondition> <tempC>C"
-          , "-L", "10"
-          , "-H", "30"
-          , "--low", "#89b4fa"
-          , "--normal", "#a6e3a1"
-          , "--high", "#f38ba8"
-          ] 36000
+
+      -- Basis-system info (stabiel op elke machine)
+      , Run Cpu    [ "--template", "<total>%"
+                   , "--Low", "20", "--High", "80"
+                   , "--low", "#a6e3a1", "--normal", "#89b4fa", "--high", "#f38ba8"
+                   ] 20
+      , Run Memory [ "--template", "<usedratio>%"
+                   , "--Low", "20", "--High", "90"
+                   , "--low", "#a6e3a1", "--normal", "#89b4fa", "--high", "#f38ba8"
+                   ] 20
+      , Run Date "%a %d %b %H:%M" "date" 60
+
+      -- Optioneel (laat staan of verwijder; werkt ook zonder):
+      -- , Run Weather "EGLL" ["--template","<tempC>°C"] 36000
+      -- , Run BatteryP ["BAT0"]
+      --     [ "--template", "<acstatus> <left>%"
+      --     , "--Low","15","--High","80"
+      --     , "--low","#f38ba8","--normal","#89b4fa","--high","#a6e3a1"
+      --     ] 50
       ]
 
   , sepChar = "%"
   , alignSep = "}{"
 
+  -- Links = XMonad (workspaces | layout | title) via StdinReader
+  -- Rechts = systeemsensoren (cpu | mem | tijd)
   , template = "%StdinReader% }{ \
-               \ <fc=#fab387>☁</fc> %EGLL% | \
                \ <fc=#cba6f7></fc> %cpu% | \
                \ <fc=#94e2d5>🧠</fc> %memory% | \
                \ <fc=#89b4fa>%date%</fc>"
