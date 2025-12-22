@@ -118,5 +118,20 @@ fi
 . "$HOME/.cargo/env"
 
 # Starship
+starship_candidates=(
+    "$HOME/.config/starship.toml"
+    "$HOME/starship.toml"
+    "$HOME/dotfiles/starship.toml"
+    "$HOME/dotfiles/starship/starship.toml"
+)
+
+for candidate in "${starship_candidates[@]}"; do
+    if [ -f "$candidate" ]; then
+        export STARSHIP_CONFIG="$candidate"
+        break
+    fi
+done
+
+unset candidate starship_candidates
+
 eval "$(starship init bash)"
-export STARSHIP_CONFIG=~/example/non/default/path/starship.toml
