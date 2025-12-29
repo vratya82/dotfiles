@@ -10,6 +10,7 @@ require("awful.autofocus")
 local wibox = require("wibox")
 -- Theme handling library
 local beautiful = require("beautiful")
+local xresources = require("beautiful.xresources")
 -- Notification library
 local naughty = require("naughty")
 local menubar = require("menubar")
@@ -19,7 +20,7 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 require("awful.hotkeys_popup.keys")
 -- Compositor and Gaps
 awful.spawn.with_shell("picom")
-beautiful.useless_gaps = 7.5
+local dpi = xresources.apply_dpi
 -- Load Debian menu entries
 local debian = require("debian.menu")
 local has_fdo, freedesktop = pcall(require, "freedesktop")
@@ -51,7 +52,9 @@ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
-beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
+beautiful.init(gears.filesystem.get_configuration_dir() .. "themes/sky/theme.lua")
+beautiful.font = "sans 10"
+beautiful.useless_gaps = dpi(8)
 
 -- This is used later as the default terminal and editor to run.
 terminal = "alacritty"
@@ -208,24 +211,24 @@ awful.screen.connect_for_each_screen(function(s)
     }
 
     -- Create the wibox
-    s.mywibox = awful.wibar({ position = "top", screen = s })
+    s.mywibox = awful.wibar({ position = "top", screen = s, height = dpi(28) })
 
     -- Add widgets to the wibox
     s.mywibox:setup {
         layout = wibox.layout.align.horizontal,
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
-            mylauncher,
-            s.mytaglist,
-            s.mypromptbox,
+            wibox.container.margin(mylauncher, dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(s.mytaglist, dpi(4), dpi(4), dpi(2), dpi(2)),
+            wibox.container.margin(s.mypromptbox, dpi(4), dpi(4), dpi(2), dpi(2)),
         },
         s.mytasklist, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            mykeyboardlayout,
-            wibox.widget.systray(),
-            mytextclock,
-            s.mylayoutbox,
+            wibox.container.margin(mykeyboardlayout, dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(wibox.widget.systray(), dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(mytextclock, dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(s.mylayoutbox, dpi(6), dpi(6), dpi(4), dpi(4)),
         },
     }
 end)
