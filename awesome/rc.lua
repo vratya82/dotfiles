@@ -53,7 +53,7 @@ end
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
 beautiful.init(gears.filesystem.get_configuration_dir() .. "themes/sky/theme.lua")
-beautiful.font = "sans 10"
+beautiful.font = "terminus 10"
 beautiful.useless_gaps = dpi(8)
 
 -- This is used later as the default terminal and editor to run.
