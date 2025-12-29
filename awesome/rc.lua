@@ -291,9 +291,9 @@ globalkeys = gears.table.join(
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.spawn(terminal) end,
               {description = "open a terminal", group = "launcher"}),
-    awful.key({ modkey, "Control" }, "r", awesome.restart,
+    awful.key({ modkey, "Shift"   }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
-    awful.key({ modkey, "Shift"   }, "q", awesome.quit,
+    awful.key({ modkey, "Mod1"    }, "q", awesome.quit,
               {description = "quit awesome", group = "awesome"}),
 
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
@@ -326,7 +326,9 @@ globalkeys = gears.table.join(
               {description = "restore minimized", group = "client"}),
 
     -- Prompt
-    awful.key({ modkey },            "r",     function () awful.screen.focused().mypromptbox:run() end,
+    awful.key({ modkey }, "r", function () awful.spawn("rofi -show drun") end,
+              {description = "rofi launcher", group = "launcher"}),
+    awful.key({ modkey, "Shift" }, "p", function () awful.screen.focused().mypromptbox:run() end,
               {description = "run prompt", group = "launcher"}),
 
     awful.key({ modkey }, "x",
@@ -341,16 +343,54 @@ globalkeys = gears.table.join(
               {description = "lua execute prompt", group = "awesome"}),
     -- Menubar
     awful.key({ modkey }, "p", function() menubar.show() end,
-              {description = "show the menubar", group = "launcher"})
+              {description = "show the menubar", group = "launcher"}),
+
+    awful.key({ }, "Print", function ()
+        awful.spawn("scrot ~/Pictures//screenshots/screenshot-%Y-%m-%d-%H%M%S.png")
+    end, {description = "screenshot", group = "launcher"}),
+
+    awful.key({ modkey }, "F1", function () awful.spawn("chromium") end,
+              {description = "launch chromium", group = "launcher"}),
+    awful.key({ modkey }, "F2", function () awful.spawn("thunderbird") end,
+              {description = "launch thunderbird", group = "launcher"}),
+    awful.key({ modkey }, "F3", function () awful.spawn("thunar") end,
+              {description = "launch thunar", group = "launcher"}),
+    awful.key({ modkey }, "F4", function () awful.spawn("keepassxc") end,
+              {description = "launch keepassxc", group = "launcher"}),
+    awful.key({ modkey }, "F5", function () awful.spawn("virt-manager") end,
+              {description = "launch virt-manager", group = "launcher"}),
+    awful.key({ modkey }, "F6", function () awful.spawn("calibre") end,
+              {description = "launch calibre", group = "launcher"}),
+    awful.key({ modkey }, "F7", function () awful.spawn("anki") end,
+              {description = "launch anki", group = "launcher"}),
+    awful.key({ modkey }, "F8", function () awful.spawn("obsidian") end,
+              {description = "launch obsidian", group = "launcher"}),
+    awful.key({ modkey }, "F9", function () awful.spawn(terminal .. " -e bmon") end,
+              {description = "launch bmon", group = "launcher"}),
+    awful.key({ modkey }, "F10", function () awful.spawn(terminal .. " -e htop") end,
+              {description = "launch htop", group = "launcher"}),
+    awful.key({ modkey }, "F11", function () awful.spawn("syncthing") end,
+              {description = "launch syncthing", group = "launcher"}),
+    awful.key({ modkey }, "F12", function () awful.spawn("xscreensaver-command -lock") end,
+              {description = "lock screen", group = "launcher"})
 )
 
 clientkeys = gears.table.join(
     awful.key({ modkey,           }, "f",
         function (c)
-            c.fullscreen = not c.fullscreen
+            awful.client.floating.set(c, true)
+            awful.placement.maximize(c, { honor_workarea = true, honor_padding = true })
             c:raise()
         end,
-        {description = "toggle fullscreen", group = "client"}),
+        {description = "float to fullscreen size", group = "client"}),
+    awful.key({ modkey, "Shift"   }, "t",
+        function (c)
+            awful.client.floating.set(c, false)
+            c.fullscreen = false
+            c.maximized = false
+            c:raise()
+        end,
+        {description = "sink to tiling", group = "client"}),
     awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end,
               {description = "close", group = "client"}),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ,
