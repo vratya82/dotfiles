@@ -52,7 +52,7 @@ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
-beautiful.init(gears.filesystem.get_configuration_dir() .. "themes/sky/theme.lua")
+beautiful.init(gears.filesystem.get_configuration_dir() .. "themes/gtk/theme.lua")
 beautiful.font = "terminus 10"
 beautiful.useless_gaps = dpi(8)
 
@@ -112,6 +112,16 @@ end
 
 mylauncher = awful.widget.launcher({ image = beautiful.awesome_icon,
                                      menu = mymainmenu })
+local pavucontrol_icon = menubar.utils.lookup_icon("pavucontrol")
+local bluetooth_icon = menubar.utils.lookup_icon("blueman-manager")
+local pavucontrol_launcher = awful.widget.launcher({
+    image = pavucontrol_icon or beautiful.awesome_icon,
+    command = "pavucontrol",
+})
+local bluetooth_launcher = awful.widget.launcher({
+    image = bluetooth_icon or beautiful.awesome_icon,
+    command = "blueman-manager",
+})
 
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
@@ -228,6 +238,8 @@ awful.screen.connect_for_each_screen(function(s)
             wibox.container.margin(mykeyboardlayout, dpi(6), dpi(6), dpi(4), dpi(4)),
             wibox.container.margin(wibox.widget.systray(), dpi(6), dpi(6), dpi(4), dpi(4)),
             wibox.container.margin(mytextclock, dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(pavucontrol_launcher, dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(bluetooth_launcher, dpi(6), dpi(6), dpi(4), dpi(4)),
             wibox.container.margin(s.mylayoutbox, dpi(6), dpi(6), dpi(4), dpi(4)),
         },
     }
