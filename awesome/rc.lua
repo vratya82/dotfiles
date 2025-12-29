@@ -174,20 +174,58 @@ local tasklist_buttons = gears.table.join(
                                               awful.client.focus.byidx(-1)
                                           end))
 
-local function set_wallpaper(s)
-    -- Wallpaper
+local tag_wallpapers = {
+    "wallpapers/1.png",
+    "wallpapers/2.png",
+    "wallpapers/3.png",
+    "wallpapers/4.png",
+    "wallpapers/5.png",
+    "wallpapers/6.png",
+    "wallpapers/7.png",
+    "wallpapers/8.png",
+    "wallpapers/9.png",
+}
+
+local function resolve_wallpaper(s)
+    local selected_tag = s.selected_tag
+    if selected_tag and selected_tag.index and tag_wallpapers[selected_tag.index] then
+        return gears.filesystem.get_configuration_dir() .. tag_wallpapers[selected_tag.index]
+    end
     if beautiful.wallpaper then
         local wallpaper = beautiful.wallpaper
-        -- If wallpaper is a function, call it with the screen
         if type(wallpaper) == "function" then
             wallpaper = wallpaper(s)
         end
+        return wallpaper
+    end
+    return nil
+end
+
+local function apply_pywal16(wallpaper)
+    if not wallpaper then
+        return
+    end
+    awful.spawn.with_shell(
+        "pywal16 -i " .. gears.shell.quote(wallpaper) ..
+        " && xrdb -load ~/.cache/wal/colors.Xresources"
+    )
+end
+
+local function set_wallpaper(s)
+    local wallpaper = resolve_wallpaper(s)
+    if wallpaper then
         gears.wallpaper.maximized(wallpaper, s, true)
+        apply_pywal16(wallpaper)
     end
 end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
 screen.connect_signal("property::geometry", set_wallpaper)
+tag.connect_signal("property::selected", function(t)
+    if t.screen then
+        set_wallpaper(t.screen)
+    end
+end)
 
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
@@ -210,7 +248,20 @@ awful.screen.connect_for_each_screen(function(s)
     s.mytaglist = awful.widget.taglist {
         screen  = s,
         filter  = awful.widget.taglist.filter.all,
-        buttons = taglist_buttons
+        buttons = taglist_buttons,
+        widget_template = {
+            {
+                id = "text_role",
+                widget = wibox.widget.textbox,
+            },
+            layout = wibox.layout.fixed.horizontal,
+            create_callback = function(self, tag)
+                self:set_text(tag.selected and tag.name or "")
+            end,
+            update_callback = function(self, tag)
+                self:set_text(tag.selected and tag.name or "")
+            end,
+        },
     }
 
     -- Create a tasklist widget
