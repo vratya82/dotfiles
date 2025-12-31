@@ -175,15 +175,15 @@ local tasklist_buttons = gears.table.join(
                                           end))
 
 local tag_wallpapers = {
-    "wallpapers/1.png",
-    "wallpapers/2.png",
-    "wallpapers/3.png",
-    "wallpapers/4.png",
-    "wallpapers/5.png",
-    "wallpapers/6.png",
-    "wallpapers/7.png",
-    "wallpapers/8.png",
-    "wallpapers/9.png",
+    "../wallpapers/1.png",
+    "../wallpapers/2.png",
+    "../wallpapers/3.png",
+    "../wallpapers/4.png",
+    "../wallpapers/5.png",
+    "../wallpapers/6.png",
+    "../wallpapers/7.png",
+    "../wallpapers/8.png",
+    "../wallpapers/9.png",
 }
 
 local function resolve_wallpaper(s)
