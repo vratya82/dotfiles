@@ -175,16 +175,25 @@ local tasklist_buttons = gears.table.join(
                                           end))
 
 local tag_wallpapers = {
-    "../wallpapers/1.png",
-    "../wallpapers/2.png",
-    "../wallpapers/3.png",
-    "../wallpapers/4.png",
-    "../wallpapers/5.png",
-    "../wallpapers/6.png",
-    "../wallpapers/7.png",
-    "../wallpapers/8.png",
-    "../wallpapers/9.png",
+    "wallpapers/1.png",
+    "wallpapers/2.png",
+    "wallpapers/3.png",
+    "wallpapers/4.png",
+    "wallpapers/5.png",
+    "wallpapers/6.png",
+    "wallpapers/7.png",
+    "wallpapers/8.png",
+    "wallpapers/9.png",
 }
+
+local battery_widget = awful.widget.watch(
+    "sh -c 'if [ -d /sys/class/power_supply/BAT0 ]; then " ..
+        "capacity=$(cat /sys/class/power_supply/BAT0/capacity); " ..
+        "status=$(cat /sys/class/power_supply/BAT0/status); " ..
+        "printf \"BAT %s%% %s\" \"$capacity\" \"$status\"; " ..
+    "fi'",
+    30
+)
 
 local function resolve_wallpaper(s)
     local selected_tag = s.selected_tag
@@ -288,6 +297,7 @@ awful.screen.connect_for_each_screen(function(s)
             layout = wibox.layout.fixed.horizontal,
             wibox.container.margin(mykeyboardlayout, dpi(6), dpi(6), dpi(4), dpi(4)),
             wibox.container.margin(wibox.widget.systray(), dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(battery_widget, dpi(6), dpi(6), dpi(4), dpi(4)),
             wibox.container.margin(mytextclock, dpi(6), dpi(6), dpi(4), dpi(4)),
             wibox.container.margin(pavucontrol_launcher, dpi(6), dpi(6), dpi(4), dpi(4)),
             wibox.container.margin(bluetooth_launcher, dpi(6), dpi(6), dpi(4), dpi(4)),
