@@ -174,18 +174,6 @@ local tasklist_buttons = gears.table.join(
                                               awful.client.focus.byidx(-1)
                                           end))
 
-local tag_wallpapers = {
-    "wallpapers/1.png",
-    "wallpapers/2.png",
-    "wallpapers/3.png",
-    "wallpapers/4.png",
-    "wallpapers/5.png",
-    "wallpapers/6.png",
-    "wallpapers/7.png",
-    "wallpapers/8.png",
-    "wallpapers/9.png",
-}
-
 local battery_widget = awful.widget.watch(
     "sh -c 'if [ -d /sys/class/power_supply/BAT0 ]; then " ..
         "capacity=$(cat /sys/class/power_supply/BAT0/capacity); " ..
@@ -194,21 +182,6 @@ local battery_widget = awful.widget.watch(
     "fi'",
     30
 )
-
-local function resolve_wallpaper(s)
-    local selected_tag = s.selected_tag
-    if selected_tag and selected_tag.index and tag_wallpapers[selected_tag.index] then
-        return gears.filesystem.get_configuration_dir() .. tag_wallpapers[selected_tag.index]
-    end
-    if beautiful.wallpaper then
-        local wallpaper = beautiful.wallpaper
-        if type(wallpaper) == "function" then
-            wallpaper = wallpaper(s)
-        end
-        return wallpaper
-    end
-    return nil
-end
 
 local function apply_pywal16(wallpaper)
     if not wallpaper then
@@ -221,7 +194,10 @@ local function apply_pywal16(wallpaper)
 end
 
 local function set_wallpaper(s)
-    local wallpaper = resolve_wallpaper(s)
+    local wallpaper = beautiful.wallpaper
+    if type(wallpaper) == "function" then
+        wallpaper = wallpaper(s)
+    end
     if wallpaper then
         gears.wallpaper.maximized(wallpaper, s, true)
         apply_pywal16(wallpaper)
@@ -230,11 +206,6 @@ end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
 screen.connect_signal("property::geometry", set_wallpaper)
-tag.connect_signal("property::selected", function(t)
-    if t.screen then
-        set_wallpaper(t.screen)
-    end
-end)
 
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
