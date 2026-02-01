@@ -10,6 +10,7 @@ require("awful.autofocus")
 local wibox = require("wibox")
 -- Theme handling library
 local beautiful = require("beautiful")
+local xresources = require("beautiful.xresources")
 -- Notification library
 local naughty = require("naughty")
 local menubar = require("menubar")
@@ -19,7 +20,7 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 require("awful.hotkeys_popup.keys")
 -- Compositor and Gaps
 awful.spawn.with_shell("picom")
-beautiful.useless_gaps = 7.5
+local dpi = xresources.apply_dpi
 -- Load Debian menu entries
 local debian = require("debian.menu")
 local has_fdo, freedesktop = pcall(require, "freedesktop")
@@ -51,7 +52,9 @@ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
-beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
+beautiful.init(gears.filesystem.get_configuration_dir() .. "themes/gtk/theme.lua")
+beautiful.font = "terminus 10"
+beautiful.useless_gaps = dpi(8)
 
 -- This is used later as the default terminal and editor to run.
 terminal = "alacritty"
@@ -109,6 +112,16 @@ end
 
 mylauncher = awful.widget.launcher({ image = beautiful.awesome_icon,
                                      menu = mymainmenu })
+local pavucontrol_icon = menubar.utils.lookup_icon("pavucontrol")
+local bluetooth_icon = menubar.utils.lookup_icon("blueman-manager")
+local pavucontrol_launcher = awful.widget.launcher({
+    image = pavucontrol_icon or beautiful.awesome_icon,
+    command = "pavucontrol",
+})
+local bluetooth_launcher = awful.widget.launcher({
+    image = bluetooth_icon or beautiful.awesome_icon,
+    command = "blueman-manager",
+})
 
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
@@ -161,15 +174,33 @@ local tasklist_buttons = gears.table.join(
                                               awful.client.focus.byidx(-1)
                                           end))
 
+local battery_widget = awful.widget.watch(
+    "sh -c 'if [ -d /sys/class/power_supply/BAT0 ]; then " ..
+        "capacity=$(cat /sys/class/power_supply/BAT0/capacity); " ..
+        "status=$(cat /sys/class/power_supply/BAT0/status); " ..
+        "printf \"BAT %s%% %s\" \"$capacity\" \"$status\"; " ..
+    "fi'",
+    30
+)
+
+local function apply_pywal16(wallpaper)
+    if not wallpaper then
+        return
+    end
+    awful.spawn.with_shell(
+        "pywal16 -i " .. gears.shell.quote(wallpaper) ..
+        " && xrdb -load ~/.cache/wal/colors.Xresources"
+    )
+end
+
 local function set_wallpaper(s)
-    -- Wallpaper
-    if beautiful.wallpaper then
-        local wallpaper = beautiful.wallpaper
-        -- If wallpaper is a function, call it with the screen
-        if type(wallpaper) == "function" then
-            wallpaper = wallpaper(s)
-        end
+    local wallpaper = beautiful.wallpaper
+    if type(wallpaper) == "function" then
+        wallpaper = wallpaper(s)
+    end
+    if wallpaper then
         gears.wallpaper.maximized(wallpaper, s, true)
+        apply_pywal16(wallpaper)
     end
 end
 
@@ -197,7 +228,20 @@ awful.screen.connect_for_each_screen(function(s)
     s.mytaglist = awful.widget.taglist {
         screen  = s,
         filter  = awful.widget.taglist.filter.all,
-        buttons = taglist_buttons
+        buttons = taglist_buttons,
+        widget_template = {
+            {
+                id = "text_role",
+                widget = wibox.widget.textbox,
+            },
+            layout = wibox.layout.fixed.horizontal,
+            create_callback = function(self, tag)
+                self:set_text(tag.selected and tag.name or "")
+            end,
+            update_callback = function(self, tag)
+                self:set_text(tag.selected and tag.name or "")
+            end,
+        },
     }
 
     -- Create a tasklist widget
@@ -208,24 +252,27 @@ awful.screen.connect_for_each_screen(function(s)
     }
 
     -- Create the wibox
-    s.mywibox = awful.wibar({ position = "top", screen = s })
+    s.mywibox = awful.wibar({ position = "top", screen = s, height = dpi(28) })
 
     -- Add widgets to the wibox
     s.mywibox:setup {
         layout = wibox.layout.align.horizontal,
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
-            mylauncher,
-            s.mytaglist,
-            s.mypromptbox,
+            wibox.container.margin(mylauncher, dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(s.mytaglist, dpi(4), dpi(4), dpi(2), dpi(2)),
+            wibox.container.margin(s.mypromptbox, dpi(4), dpi(4), dpi(2), dpi(2)),
         },
         s.mytasklist, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            mykeyboardlayout,
-            wibox.widget.systray(),
-            mytextclock,
-            s.mylayoutbox,
+            wibox.container.margin(mykeyboardlayout, dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(wibox.widget.systray(), dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(battery_widget, dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(mytextclock, dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(pavucontrol_launcher, dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(bluetooth_launcher, dpi(6), dpi(6), dpi(4), dpi(4)),
+            wibox.container.margin(s.mylayoutbox, dpi(6), dpi(6), dpi(4), dpi(4)),
         },
     }
 end)
@@ -288,9 +335,9 @@ globalkeys = gears.table.join(
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.spawn(terminal) end,
               {description = "open a terminal", group = "launcher"}),
-    awful.key({ modkey, "Control" }, "r", awesome.restart,
+    awful.key({ modkey, "Shift"   }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
-    awful.key({ modkey, "Shift"   }, "q", awesome.quit,
+    awful.key({ modkey, "Mod1"    }, "q", awesome.quit,
               {description = "quit awesome", group = "awesome"}),
 
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
@@ -323,7 +370,9 @@ globalkeys = gears.table.join(
               {description = "restore minimized", group = "client"}),
 
     -- Prompt
-    awful.key({ modkey },            "r",     function () awful.screen.focused().mypromptbox:run() end,
+    awful.key({ modkey }, "r", function () awful.spawn("rofi -show drun") end,
+              {description = "rofi launcher", group = "launcher"}),
+    awful.key({ modkey, "Shift" }, "p", function () awful.screen.focused().mypromptbox:run() end,
               {description = "run prompt", group = "launcher"}),
 
     awful.key({ modkey }, "x",
@@ -338,16 +387,54 @@ globalkeys = gears.table.join(
               {description = "lua execute prompt", group = "awesome"}),
     -- Menubar
     awful.key({ modkey }, "p", function() menubar.show() end,
-              {description = "show the menubar", group = "launcher"})
+              {description = "show the menubar", group = "launcher"}),
+
+    awful.key({ }, "Print", function ()
+        awful.spawn("scrot ~/Pictures//screenshots/screenshot-%Y-%m-%d-%H%M%S.png")
+    end, {description = "screenshot", group = "launcher"}),
+
+    awful.key({ modkey }, "F1", function () awful.spawn("chromium") end,
+              {description = "launch chromium", group = "launcher"}),
+    awful.key({ modkey }, "F2", function () awful.spawn("thunderbird") end,
+              {description = "launch thunderbird", group = "launcher"}),
+    awful.key({ modkey }, "F3", function () awful.spawn("thunar") end,
+              {description = "launch thunar", group = "launcher"}),
+    awful.key({ modkey }, "F4", function () awful.spawn("keepassxc") end,
+              {description = "launch keepassxc", group = "launcher"}),
+    awful.key({ modkey }, "F5", function () awful.spawn("virt-manager") end,
+              {description = "launch virt-manager", group = "launcher"}),
+    awful.key({ modkey }, "F6", function () awful.spawn("calibre") end,
+              {description = "launch calibre", group = "launcher"}),
+    awful.key({ modkey }, "F7", function () awful.spawn("anki") end,
+              {description = "launch anki", group = "launcher"}),
+    awful.key({ modkey }, "F8", function () awful.spawn("obsidian") end,
+              {description = "launch obsidian", group = "launcher"}),
+    awful.key({ modkey }, "F9", function () awful.spawn(terminal .. " -e bmon") end,
+              {description = "launch bmon", group = "launcher"}),
+    awful.key({ modkey }, "F10", function () awful.spawn(terminal .. " -e htop") end,
+              {description = "launch htop", group = "launcher"}),
+    awful.key({ modkey }, "F11", function () awful.spawn("syncthing") end,
+              {description = "launch syncthing", group = "launcher"}),
+    awful.key({ modkey }, "F12", function () awful.spawn("xscreensaver-command -lock") end,
+              {description = "lock screen", group = "launcher"})
 )
 
 clientkeys = gears.table.join(
     awful.key({ modkey,           }, "f",
         function (c)
-            c.fullscreen = not c.fullscreen
+            awful.client.floating.set(c, true)
+            awful.placement.maximize(c, { honor_workarea = true, honor_padding = true })
             c:raise()
         end,
-        {description = "toggle fullscreen", group = "client"}),
+        {description = "float to fullscreen size", group = "client"}),
+    awful.key({ modkey, "Shift"   }, "t",
+        function (c)
+            awful.client.floating.set(c, false)
+            c.fullscreen = false
+            c.maximized = false
+            c:raise()
+        end,
+        {description = "sink to tiling", group = "client"}),
     awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end,
               {description = "close", group = "client"}),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ,
