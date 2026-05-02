@@ -1,1 +1,0 @@
-../../scripts/layout_detec.sh
