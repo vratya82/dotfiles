@@ -1,0 +1,54 @@
+Config
+  { font = "JetBrainsMono Nerd Font 16"
+  , additionalFonts =
+      [ "Noto Sans Mono 16"
+      , "Font Awesome 6 Free Solid 16"
+      ]
+  , bgColor = "#000000"
+  , fgColor = "#cdd6f4"
+  , alpha  = 255              -- zet bv. 230 als je lichte transparantie wil
+  , position = TopSize C 100 30   -- explicit height; auto-fit was clipping text at top edge
+  , border = NoBorder
+  , lowerOnStart = True
+  , hideOnStart = False
+  , persistent = True
+  , allDesktops = True        -- laat docks/struts op alle desktops gelden
+  , overrideRedirect = True   -- voorkom window-manager borders/shadows
+
+  , commands =
+      [ Run StdinReader
+
+      -- Basis-system info (stabiel op elke machine)
+      , Run Cpu    [ "--template", "<total>%"
+                   , "--Low", "20", "--High", "80"
+                   , "--low", "#a6e3a1", "--normal", "#89b4fa", "--high", "#f38ba8"
+                   ] 20
+      , Run Memory [ "--template", "<usedratio>%"
+                   , "--Low", "20", "--High", "90"
+                   , "--low", "#a6e3a1", "--normal", "#89b4fa", "--high", "#f38ba8"
+                   ] 20
+      , Run Date "%a %d %b %H:%M" "date" 60
+
+      , Run BatteryP ["BAT0"]
+          [ "--template", "<acstatus> <left>%"
+          , "--Low", "15", "--High", "80"
+          , "--low", "#f38ba8", "--normal", "#89b4fa", "--high", "#a6e3a1"
+          , "--"
+          , "-O", "AC"
+          , "-i", "FULL"
+          , "-o", "BAT"
+          ] 50
+      ]
+
+  , sepChar = "%"
+  , alignSep = "}{"
+
+  -- Left = XMonad (workspaces | layout | title) via StdinReader
+  -- Right = systeemsensoren (cpu | mem | tijd)
+  , template = "<fc=#5E5086></fc> | %StdinReader% }{ \
+               \ CPU %cpu% | \
+               \ RAM %memory% | \
+               \ %battery% | \
+               \ <fc=#89b4fa>%date%</fc>"
+  }
+
