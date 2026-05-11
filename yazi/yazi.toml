@@ -1,7 +1,64 @@
-# yazi.toml
 [mgr]
-show_hidden = true
-show_symlink = true
-#linemode = "size_and_mtime"
+ratio          = [1, 3, 4]
+sort_by        = "natural"
+sort_dir_first = true
+sort_sensitive = false
+sort_reverse   = false
+sort_translit  = false
+linemode       = "size_and_mtime"
+show_hidden    = false
+show_symlink   = true
+
 [preview]
-image = "viu -w $COLUMNS -h $LINES --absolute --static $1"
+wrap            = "no"
+tab_size        = 2
+max_width       = 1000
+max_height      = 1000
+cache_dir       = ""
+image_filter    = "lanczos3"
+image_quality   = 85
+sixel_fraction  = 15
+ueberzug_scale  = 1
+ueberzug_offset = [0, 0, 0, 0]
+
+[opener]
+edit = [
+  { run = 'vim "$@"', block = true, for = "unix" },
+]
+open = [
+  { run = 'xdg-open "$@"', desc = "Open with default app", orphan = true, for = "linux" },
+]
+play = [
+  { run = 'mpv --force-window "$@"', orphan = true, for = "linux" },
+]
+view-image = [
+  { run = 'xdg-open "$@"', desc = "View image", orphan = true, for = "linux" },
+]
+
+[open]
+prepend_rules = [
+  { url  = "*.{md,markdown}",     use = "edit" },
+  { mime = "text/*",              use = "edit" },
+  { mime = "image/*",             use = "view-image" },
+  { mime = "video/*",             use = "play" },
+  { mime = "audio/*",             use = "play" },
+]
+
+[plugin]
+prepend_previewers = [
+  # Images: nothing here — Yazi's built-in previewer auto-detects
+  # ueberzugpp on PATH and uses it as the X11 image overlay. The old
+  # chafa-image plugin is still on disk under plugins/chafa-image.yazi/
+  # if you ever need to fall back (re-add: { mime = "image/*", run = "chafa-image" }).
+
+  # Video: ensure ffmpegthumbnailer-driven preview fires even when the file's
+  # MIME is detected as application/octet-stream (common for .mkv/.webm).
+  { url = "*.{mp4,mkv,webm,mov,avi,m4v,flv,wmv,mpg,mpeg,ts,3gp}", run = "video" },
+
+  # Office / rich-text documents → pandoc-rendered plain text
+  { mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document", run = "docs" },
+  { mime = "application/msword",                                                       run = "docs" },
+  { mime = "application/vnd.oasis.opendocument.text",                                  run = "docs" },
+  { mime = "application/rtf",                                                          run = "docs" },
+  { mime = "application/epub+zip",                                                     run = "docs" },
+]

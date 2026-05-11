@@ -1,0 +1,89 @@
+# Custom keys are PREPENDED to defaults — anything you don't bind here
+# still uses Yazi's stock keymap.
+
+# ---------- bookmarks (dedukun/bookmarks) ----------
+[[mgr.prepend_keymap]]
+on  = [ "m" ]
+run = "plugin bookmarks save"
+desc = "Save current location as a bookmark"
+
+[[mgr.prepend_keymap]]
+on  = [ "'" ]
+run = "plugin bookmarks jump"
+desc = "Jump to a bookmark"
+
+[[mgr.prepend_keymap]]
+on  = [ "b", "d" ]
+run = "plugin bookmarks delete"
+desc = "Delete a bookmark"
+
+[[mgr.prepend_keymap]]
+on  = [ "b", "D" ]
+run = "plugin bookmarks delete_all"
+desc = "Delete all bookmarks"
+
+# ---------- smart-enter (one key for both files & dirs) ----------
+[[mgr.prepend_keymap]]
+on  = [ "<Enter>" ]
+run = "plugin smart-enter"
+desc = "Enter dir / open file"
+
+[[mgr.prepend_keymap]]
+on  = [ "l" ]
+run = "plugin smart-enter"
+desc = "Enter dir / open file"
+
+# ---------- jump-to-char (vim-like quick jump) ----------
+[[mgr.prepend_keymap]]
+on  = [ "<Space>", "j" ]
+run = "plugin jump-to-char"
+desc = "Jump to a file starting with a chosen character"
+
+# ---------- smart-filter (interactive narrowing) ----------
+[[mgr.prepend_keymap]]
+on  = [ "F" ]
+run = "plugin smart-filter"
+desc = "Smart filter (live narrowing)"
+
+# ---------- quick directory jumps ----------
+[[mgr.prepend_keymap]]
+on  = [ "g", "h" ]
+run = "cd ~"
+desc = "Go home"
+
+[[mgr.prepend_keymap]]
+on  = [ "g", "c" ]
+run = "cd ~/.config"
+desc = "Go to ~/.config"
+
+[[mgr.prepend_keymap]]
+on  = [ "g", "p" ]
+run = "cd ~/VibeCoding"
+desc = "Go to ~/VibeCoding"
+
+[[mgr.prepend_keymap]]
+on  = [ "g", "d" ]
+run = "cd ~/Downloads"
+desc = "Go to ~/Downloads"
+
+[[mgr.prepend_keymap]]
+on  = [ "g", "/" ]
+run = "cd /"
+desc = "Go to /"
+
+# ---------- zoxide / fzf jumps (explicit, in case defaults shift) ----------
+[[mgr.prepend_keymap]]
+on  = [ "z" ]
+run = "plugin zoxide"
+desc = "Jump via zoxide (frecent dirs)"
+
+[[mgr.prepend_keymap]]
+on  = [ "Z" ]
+run = "plugin fzf"
+desc = "Jump via fzf (fuzzy file/dir search)"
+
+# ---------- toggle hidden files ----------
+[[mgr.prepend_keymap]]
+on  = [ "." ]
+run = "hidden toggle"
+desc = "Toggle hidden files"
