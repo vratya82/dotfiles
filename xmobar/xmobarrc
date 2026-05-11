@@ -51,3 +51,4 @@ Config
                \ %battery% | \
                \ <fc=#89b4fa>%date%</fc>"
   }
+
