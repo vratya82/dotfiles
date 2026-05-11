@@ -6,7 +6,7 @@ Config
       ]
   , bgColor = "#000000"
   , fgColor = "#cdd6f4"
-  , alpha  = 255              -- zet bv. 230 als je lichte transparantie wil
+  , alpha  = 230 -- zet bv. 230 als je lichte transparantie wil
   , position = TopSize C 100 30   -- explicit height; auto-fit was clipping text at top edge
   , border = NoBorder
   , lowerOnStart = True
@@ -51,4 +51,3 @@ Config
                \ %battery% | \
                \ <fc=#89b4fa>%date%</fc>"
   }
-

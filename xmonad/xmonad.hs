@@ -2,7 +2,6 @@ import XMonad
 import XMonad.Hooks.ManageDocks (docks, avoidStruts)
 import XMonad.Hooks.EwmhDesktops (ewmh, ewmhFullscreen)
 import XMonad.Hooks.DynamicLog (dynamicLogWithPP, xmobarPP, PP(..))
-import XMonad.Layout.Accordion (Accordion(..))
 import XMonad.Layout.Grid (Grid(..))
 import XMonad.Layout.NoBorders (smartBorders)
 import XMonad.Layout.ResizableTile (ResizableTall(..))
@@ -79,7 +78,6 @@ myLayout = smartBorders
        ||| ResizableTall 1 (3/100) (1/2) []
        ||| TwoPane (3/100) (1/2)
        ||| simpleTabbed
-       ||| Accordion
        ||| simplestFloat
        ||| Full
 
@@ -99,6 +97,6 @@ main = do
        , logHook     = dynamicLogWithPP xmobarPP { ppOutput = hPutStrLn xmproc }
        , startupHook = do
            spawnOnce "picom"
-           spawnOnce "feh --bg-fill --randomize ~/dotfiles/wallpapers/*.png"
+           spawnOnce "feh --bg-fill --randomize ~/wallpapers/*.jpg"
        }
       `additionalKeys` myKeys
