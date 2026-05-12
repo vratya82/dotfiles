@@ -28,7 +28,7 @@ if [ -z "$next_wallpaper" ]; then
 fi
 
 screen_size="$(
-  xdpyinfo | awk '/dimensions:/ { print $2; exit }'
+  xdpyinfo | awk '/dimensions:/ { print $2 }'
 )"
 
 if [ -z "$screen_size" ]; then
