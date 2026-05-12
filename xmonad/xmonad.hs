@@ -29,7 +29,7 @@ myWorkspaces :: [String]
 myWorkspaces = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"]
 
 wallpaperCommand :: String
-wallpaperCommand = "bash ~/dotfiles/xmonad/rotate-wallpaper-fade.sh"
+wallpaperCommand = "feh --recursive --randomize --bg-fill ~/wallpapers"
 
 startupWallpaperCommand :: String
 startupWallpaperCommand = "feh --recursive --randomize --bg-fill ~/wallpapers"
