@@ -28,6 +28,12 @@ myModMask = mod4Mask
 myWorkspaces :: [String]
 myWorkspaces = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"]
 
+wallpaperCommand :: String
+wallpaperCommand = "bash ~/dotfiles/xmonad/rotate-wallpaper-fade.sh"
+
+startupWallpaperCommand :: String
+startupWallpaperCommand = "feh --recursive --randomize --bg-fill ~/wallpapers"
+
 toggleFullFloat :: Window -> X ()
 toggleFullFloat w = windows $ \s ->
   if M.member w (W.floating s)
@@ -50,7 +56,7 @@ myKeys =
     , ((myModMask .|. shiftMask, xK_t),      withFocused $ windows . W.sink)
     , ((myModMask,               xK_f),      withFocused toggleFullFloat)
     , ((myModMask,               xK_space),  unfloatOrNextLayout)
-    , ((myModMask,               xK_w),      spawn "feh --bg-fill --randomize ~/dotfiles/wallpapers/*.png")
+    , ((myModMask,               xK_w),      spawn wallpaperCommand)
 
     , ((0,                       xK_Print),  spawn "scrot ~/Pictures/screenshots/screenshot-%Y-%m-%d-%H%M%S.png")
 
@@ -97,6 +103,6 @@ main = do
        , logHook     = dynamicLogWithPP xmobarPP { ppOutput = hPutStrLn xmproc }
        , startupHook = do
            spawnOnce "picom"
-           spawnOnce "feh --bg-fill --randomize ~/wallpapers/*.jpg"
+           spawnOnce startupWallpaperCommand
        }
       `additionalKeys` myKeys
