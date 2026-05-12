@@ -104,5 +104,6 @@ main = do
        , startupHook = do
            spawnOnce "picom"
            spawnOnce startupWallpaperCommand
+           spawnOnce "xscreensaver -no-splash"
        }
       `additionalKeys` myKeys
