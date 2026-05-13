@@ -1,19 +1,19 @@
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
-
 # If not running interactively, don't do anything
 case $- in
     *i*) ;;
       *) return;;
 esac
 
-# Editor
-EDITOR=vim
-
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoreboth
+
+# $PATH (for Python/Pip and whatnot
+export PATH="/usr/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 
 # append to the history file, don't overwrite it
 shopt -s histappend
@@ -31,7 +31,7 @@ shopt -s checkwinsize
 #shopt -s globstar
 
 # make less more friendly for non-text input files, see lesspipe(1)
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+#[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
@@ -46,7 +46,7 @@ esac
 # uncomment for a colored prompt, if the terminal has the capability; turned
 # off by default to not distract the user: the focus in a terminal window
 # should be on the output of commands, not on the prompt
-force_color_prompt=yes
+#force_color_prompt=yes
 
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
@@ -75,13 +75,31 @@ xterm*|rxvt*)
     ;;
 esac
 
-# enable color support for commands that use dircolors
+# enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    alias dir='dir --color=auto'
+    alias vdir='vdir --color=auto'
+
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
 fi
 
 # colored GCC warnings and errors
-#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+
+# some more ls aliases
+alias ll='ls -l'
+alias la='ls -A'
+alias l='ls -CF'
+alias cls='clear'
+alias clr='clear'
+alias Q='exit'
+
+# Pywal
+#wal -R -q
 
 # Alias definitions.
 # You may want to put all your additions into a separate file like
@@ -91,7 +109,6 @@ fi
 if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
 fi
-
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
@@ -103,44 +120,43 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# Wallpaper
-#nitrogen --restore 
-#nitrogen --restore 2> /dev/null &
-
-# Pywal
-# Import colorscheme from 'wal' asynchronously
-# &   # Run the process in the background.
-# ( ) # Hide shell job control messages.
-# Not supported in the "fish" shell.
-(cat ~/.cache/wal/sequences &)
-
-# Alternative (blocks terminal for 0-3ms)
-cat ~/.cache/wal/sequences
-
-# To add support for TTYs this line can be optionally added.
-source ~/.cache/wal/colors-tty.sh
-
-# Persistence of Pywal16
-#wal -q -R
-
-# Rust
-. "$HOME/.cargo/env"
-
+export PATH="$HOME/.local/bin:$PATH"
+# Doom Emacs binaries
+if [ -d "$HOME/.config/emacs/bin" ]; then
+  export PATH="$HOME/.config/emacs/bin:$PATH"
+fi
 # Starship
-starship_candidates=(
-    "$HOME/.config/starship.toml"
-    "$HOME/starship.toml"
-    "$HOME/dotfiles/starship.toml"
-    "$HOME/dotfiles/starship/starship.toml"
-)
-
-for candidate in "${starship_candidates[@]}"; do
-    if [ -f "$candidate" ]; then
-        export STARSHIP_CONFIG="$candidate"
-        break
-    fi
-done
-
-unset candidate starship_candidates
-
 eval "$(starship init bash)"
+
+# Bash has no native right prompt. Draw Starship's right prompt at the far
+# right and restore the cursor so typing starts after the left prompt.
+__starship_right_prompt() {
+  local columns="${COLUMNS:-80}"
+  local start_col=$((columns - 8))
+
+  if [ "$start_col" -lt 1 ]; then
+    start_col=1
+  fi
+
+  PS1="${PS1}\[\e7\]\[\e[${start_col}G\]$(starship prompt --right --terminal-width "$columns")\[\e8\]"
+}
+
+case ";${PROMPT_COMMAND:-};" in
+  *";__starship_right_prompt;"*) ;;
+  *) PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }__starship_right_prompt" ;;
+esac
+
+[ -f "/home/vratya/.ghcup/env" ] && . "/home/vratya/.ghcup/env" # ghcup-env
+export PATH="$HOME/.cargo/bin:$PATH"
+
+export NVM_DIR="$HOME/.config/nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# zoxide: smarter `cd` that ranks dirs by frecency. Adds `z`/`zi` shell
+# commands and records every cd, so Yazi's `z` key can jump to your
+# common dirs.
+eval "$(zoxide init bash)"
+
+# opencode
+export PATH=/home/vratya/.opencode/bin:$PATH

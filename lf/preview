@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+# ~/.config/lf/preview
+set -eu
+
+file="$1"
+w="$2"
+h="$3"
+x="$4"
+y="$5"
+
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/lf"
+mkdir -p "$CACHE"
+
+mime="$(file -Lb --mime-type -- "$file")"
+ext="${file##*.}"
+ext_lc="$(printf "%s" "$ext" | tr '[:upper:]' '[:lower:]')"
+
+# If ueberzugpp is available, lf will call cleaner between selections,
+# so we can safely "draw" a new image each time.
+UEBERZUGPP="${UEBERZUGPP:-ueberzugpp}"
+
+draw_image_ueberzug() {
+  # ueberzugpp layer protocol (json lines)
+  # We print a single "add" command to stdout; lf pipes it to ueberzugpp in some setups.
+  # Many people run ueberzugpp via lf's previewer directly; this works well in practice.
+  printf '{"action":"add","identifier":"lf-preview","x":%s,"y":%s,"width":%s,"height":%s,"path":"%s"}\n' \
+    "$x" "$y" "$w" "$h" "$(printf "%s" "$1" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+}
+
+# Fallback image preview in text terminals
+draw_image_chafa() {
+  chafa -f symbols -s "${w}x${h}" --animate off --polite on -- "$1"
+}
+
+# ---- Dispatch ----
+
+case "$mime" in
+  image/*)
+    # GIFs preview as image (single frame) unless chafa is used.
+    if command -v "$UEBERZUGPP" >/dev/null 2>&1; then
+      draw_image_ueberzugpp "$file"
+      exit 0
+    elif command -v chafa >/dev/null 2>&1; then
+      draw_image_chafa "$file"
+      exit 0
+    fi
+    ;;
+
+  application/pdf)
+    # Render first page to cache as PNG (fast after first time)
+    out="$CACHE/pdf-$(printf "%s" "$file" | sha256sum | awk '{print $1}').png"
+    if [ ! -s "$out" ]; then
+      # -singlefile writes out.png not out-1.png
+      pdftoppm -png -f 1 -l 1 -singlefile -- "$file" "${out%.png}" >/dev/null 2>&1 || true
+    fi
+    if [ -s "$out" ]; then
+      if command -v "$UEBERZUGPP" >/dev/null 2>&1; then
+        draw_image_ueberzugpp "$out"
+        exit 0
+      elif command -v chafa >/dev/null 2>&1; then
+        draw_image_chafa "$out"
+        exit 0
+      fi
+    fi
+    # If image preview fails, show text metadata
+    if command -v pdfinfo >/dev/null 2>&1; then
+      pdfinfo -- "$file"
+      exit 0
+    fi
+    ;;
+
+  video/*)
+    thumb="$CACHE/vid-$(printf "%s" "$file" | sha256sum | awk '{print $1}').jpg"
+    if [ ! -s "$thumb" ] && command -v ffmpegthumbnailer >/dev/null 2>&1; then
+      ffmpegthumbnailer -i "$file" -o "$thumb" -s 0 -q 7 >/dev/null 2>&1 || true
+    fi
+    if [ -s "$thumb" ]; then
+      if command -v "$UEBERZUGPP" >/dev/null 2>&1; then
+        draw_image_ueberzugpp "$thumb"
+        exit 0
+      elif command -v chafa >/dev/null 2>&1; then
+        draw_image_chafa "$thumb"
+        exit 0
+      fi
+    fi
+    if command -v mediainfo >/dev/null 2>&1; then
+      mediainfo -- "$file"
+      exit 0
+    fi
+    ;;
+
+  audio/*)
+    if command -v mediainfo >/dev/null 2>&1; then
+      mediainfo -- "$file"
+      exit 0
+    fi
+    ;;
+
+  application/zip|application/x-tar|application/x-7z-compressed|application/x-rar|application/gzip|application/x-bzip2)
+    if command -v atool >/dev/null 2>&1; then
+      atool --list -- "$file" 2>/dev/null || true
+      exit 0
+    elif command -v bsdtar >/dev/null 2>&1; then
+      bsdtar -tf -- "$file" 2>/dev/null | head -n 200
+      exit 0
+    fi
+    ;;
+
+  text/*|application/json|application/xml)
+    # Prefer pistol if available (handles many text-ish formats nicely)
+    if command -v pistol >/dev/null 2>&1; then
+      pistol -- "$file"
+      exit 0
+    fi
+    if command -v bat >/dev/null 2>&1; then
+      bat --style=plain --color=always --paging=never --terminal-width "$w" -- "$file"
+      exit 0
+    fi
+    sed -n '1,200p' -- "$file"
+    exit 0
+    ;;
+esac
+
+# Code / config files that may not be detected as text/* reliably
+case "$ext_lc" in
+  c|h|cpp|hpp|rs|py|sh
+

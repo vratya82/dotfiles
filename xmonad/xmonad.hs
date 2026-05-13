@@ -11,6 +11,7 @@ import XMonad.Layout.Spiral (spiral)
 import XMonad.Layout.Tabbed (simpleTabbed)
 import XMonad.Layout.ThreeColumns (ThreeCol(..))
 import XMonad.Layout.TwoPane (TwoPane(..))
+import XMonad.Prompt.ConfirmPrompt (confirmPrompt)
 import XMonad.Util.EZConfig (additionalKeys)
 import XMonad.Util.Run (spawnPipe)
 import XMonad.Util.SpawnOnce (spawnOnce)
@@ -34,6 +35,12 @@ wallpaperCommand = "feh --recursive --randomize --bg-fill ~/wallpapers"
 startupWallpaperCommand :: String
 startupWallpaperCommand = "feh --recursive --randomize --bg-fill ~/wallpapers"
 
+lockCommand :: String
+lockCommand = "sh -c 'xscreensaver-command -lock || { xscreensaver -no-splash & sleep 1; xscreensaver-command -lock; }'"
+
+screenshotCommand :: String
+screenshotCommand = "mkdir -p ~/screenshots && scrot --select --freeze --line mode=edge ~/screenshots/screenshot-%Y-%m-%d-%H%M%S.png"
+
 toggleFullFloat :: Window -> X ()
 toggleFullFloat w = windows $ \s ->
   if M.member w (W.floating s)
@@ -50,7 +57,7 @@ unfloatOrNextLayout = do
 myKeys =
     [ ((myModMask,               xK_Return), spawn myTerminal)
     , ((myModMask .|. shiftMask, xK_c),      kill)
-    , ((myModMask .|. mod1Mask,  xK_q),      io (exitWith ExitSuccess))
+    , ((myModMask .|. mod1Mask,  xK_q),      confirmPrompt def "exit xmonad" (io (exitWith ExitSuccess)))
     , ((myModMask,               xK_r),      spawn "rofi -show drun")
     , ((myModMask .|. shiftMask, xK_r),      spawn "xmonad --recompile && xmonad --restart")
     , ((myModMask .|. shiftMask, xK_t),      withFocused $ windows . W.sink)
@@ -58,20 +65,21 @@ myKeys =
     , ((myModMask,               xK_space),  unfloatOrNextLayout)
     , ((myModMask,               xK_w),      spawn wallpaperCommand)
 
-    , ((0,                       xK_Print),  spawn "scrot ~/Pictures/screenshots/screenshot-%Y-%m-%d-%H%M%S.png")
+    , ((0,                       xK_Print),  spawn screenshotCommand)
+    , ((myModMask .|. shiftMask, xK_s),      spawn screenshotCommand)
 
     , ((myModMask, xK_F1),  spawn "firefox")
     , ((myModMask, xK_F2),  spawn "thunderbird")
     , ((myModMask, xK_F3),  spawn "thunar")
     , ((myModMask, xK_F4),  spawn "keepassxc")
     , ((myModMask, xK_F5),  spawn "virt-manager")
-    , ((myModMask, xK_F6),  spawn "calibre")
-    , ((myModMask, xK_F7),  spawn "anki")
+    , ((myModMask, xK_F6),  spawn "flatpak run com.calibre_ebook.calibre")
+    , ((myModMask, xK_F7),  spawn "flatpak run net.ankiweb.Anki")
     , ((myModMask, xK_F8),  spawn "obsidian")
     , ((myModMask, xK_F9),  spawn (myTerminal ++ " -e bmon"))
     , ((myModMask, xK_F10), spawn (myTerminal ++ " -e htop"))
     , ((myModMask, xK_F11), spawn "syncthing")
-    , ((myModMask, xK_F12), spawn "xscreensaver-command -lock")
+    , ((myModMask, xK_F12), spawn lockCommand)
     ]
 
 myLayout = smartBorders
@@ -98,7 +106,10 @@ main = do
        { terminal    = myTerminal
        , modMask     = myModMask
        , workspaces  = myWorkspaces
-       , borderWidth = 0
+       , focusFollowsMouse = False
+       , borderWidth = 1
+       , focusedBorderColor = "#d8dee9"
+       , normalBorderColor  = "#6b7280"
        , layoutHook  = avoidStruts myLayout
        , logHook     = dynamicLogWithPP xmobarPP { ppOutput = hPutStrLn xmproc }
        , startupHook = do

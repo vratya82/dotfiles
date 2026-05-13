@@ -1,0 +1,13 @@
+[user]
+	name = vratya82
+	email = v82drew@gmail.com
+[init]
+	defaultBranch = main
+[pull]
+	rebase = false
+[core]
+	editor = vim
+[color]
+	ui = auto
+[push]
+	autoSetupRemote = true

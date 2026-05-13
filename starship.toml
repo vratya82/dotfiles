@@ -1,76 +1,166 @@
-"$schema" = "https://starship.rs/config-schema.json"
+# ~/.config/starship.toml
 
-# ➕ Prompt Layout
 add_newline = false
+command_timeout = 800
+
+palette = "gentoo"
+
 format = """
-$os$directory$git_branch$git_status$nodejs$python$rust$cmd_duration
-$character
+[](gentoo_dark)$os$username$hostname[](fg:gentoo_dark bg:gentoo_mid)$directory[](fg:gentoo_mid) $git_branch$git_status$git_metrics$python$c$rust$haskell$nodejs$nix_shell$custom$cmd_duration$jobs$battery
 """
 
-# 🎯 Prompt character
-[character]
-success_symbol = "[❯](bold green)"
-error_symbol = "[❯](bold red)"
+right_format = """$time"""
 
-# 🐧 Distro icon
+[palettes.gentoo]
+gentoo_dark = "#54487A"
+gentoo_mid = "#6C5B96"
+gentoo_dim = "#4D4568"
+gentoo_deep = "#3B3552"
+gentoo_black = "#211D2E"
+gentoo_text = "#F7F7F7"
+gentoo_muted = "#D7D1E8"
+gentoo_warn = "#EBCB8B"
+gentoo_bad = "#BF616A"
+gentoo_good = "#A3BE8C"
+
+# --------------------
+# Core prompt
+# --------------------
+
+[character]
+success_symbol = "[❯](bold gentoo_good)"
+error_symbol = "[❯](bold gentoo_bad)"
+
 [os]
 disabled = false
-style = "bold blue"
-format = "[󰕈](bg:none fg:#88c0d0)"  # change to your distro icon
-# More icons: https://www.nerdfonts.com/cheat-sheet
+style = "bold fg:gentoo_text bg:gentoo_dark"
+format = "[$symbol]($style)"
 
-# 📁 Directory
-[directory]
-style = "bold fg:#a3be8c"
-truncation_length = 3
-format = "[$path ]($style)"
-
-# 🌱 Git branch
-[git_branch]
-symbol = ""
-style = "bold fg:#ebcb8b"
-format = "[$symbol $branch ]($style)"
-
-# 🧩 Git status
-[git_status]
-style = "bold fg:#d08770"
-format = "[$all_status$ahead_behind ]($style)"
-
-# 🐍 Python
-[python]
-symbol = ""
-style = "bold fg:#b48ead"
-format = "[$symbol $virtualenv ]($style)"
-detect_extensions = ["py"]
-detect_files = ["pyproject.toml", "requirements.txt"]
-
-# 🦀 Rust
-[rust]
-symbol = "🦀"
-style = "bold fg:#d08770"
-format = "[$symbol $version ]($style)"
-detect_extensions = ["rs"]
-
-# 📦 Node.js
-[nodejs]
-symbol = ""
-style = "bold fg:#8fbcbb"
-format = "[$symbol $version ]($style)"
-detect_extensions = ["js", "ts", "mjs"]
-
-# ⏱ Command duration
-[cmd_duration]
-min_time = 100
-style = "fg:#88c0d0"
-format = "[⏱ $duration]($style)"
-
-# 🎯 Disable unused modules
-[package]
-disabled = true
-
-[hostname]
-disabled = true
+[os.symbols]
+Arch = ""
+Debian = ""
+Gentoo = ""
+Linux = ""
+NixOS = ""
+Ubuntu = ""
 
 [username]
-disabled = true
+show_always = false
+style_user = "bold fg:gentoo_text bg:gentoo_dark"
+format = "[$user]($style)"
 
+[hostname]
+ssh_only = true
+style = "bold fg:gentoo_text bg:gentoo_dark"
+format = "[@$hostname ]($style)"
+
+[directory]
+style = "bold fg:gentoo_text bg:gentoo_mid"
+truncation_length = 3
+truncate_to_repo = true
+format = "[ $path ]($style)"
+
+# --------------------
+# Git
+# --------------------
+
+[git_branch]
+symbol = " "
+style = "bold gentoo_mid"
+format = "[$symbol$branch]($style) "
+
+[git_status]
+style = "bold gentoo_warn"
+format = "[$all_status$ahead_behind]($style) "
+
+[git_metrics]
+disabled = false
+added_style = "bold gentoo_good"
+deleted_style = "bold gentoo_bad"
+format = "([+$added]($added_style) )([-$deleted]($deleted_style) )"
+
+# --------------------
+# Languages and project context
+# --------------------
+
+[python]
+symbol = "py "
+style = "bold gentoo_good"
+format = "[$symbol$version]($style) "
+version_format = "v${raw}"
+detect_extensions = ["py"]
+detect_files = ["pyproject.toml", "requirements.txt", "setup.py"]
+
+[c]
+symbol = "c "
+style = "bold gentoo_muted"
+format = "[$symbol$version]($style) "
+version_format = "v${raw}"
+
+[rust]
+symbol = "rs "
+style = "bold gentoo_bad"
+format = "[$symbol$version]($style) "
+version_format = "v${raw}"
+
+[haskell]
+symbol = "λ "
+style = "bold gentoo_mid"
+format = "[$symbol$version]($style) "
+version_format = "v${raw}"
+
+[nodejs]
+symbol = "node "
+style = "bold gentoo_good"
+format = "[$symbol$version]($style) "
+version_format = "v${raw}"
+detect_files = ["package.json", ".node-version", ".nvmrc"]
+detect_folders = ["node_modules"]
+
+[nix_shell]
+symbol = "nix "
+style = "bold gentoo_muted"
+format = "[$symbol$state]($style) "
+
+[custom.cabal]
+command = "cabal --numeric-version"
+detect_extensions = ["cabal"]
+detect_files = ["cabal.project", "cabal.project.local"]
+format = "[cabal v$output]($style) "
+style = "bold gentoo_mid"
+
+# --------------------
+# Runtime signals
+# --------------------
+
+[cmd_duration]
+min_time = 1000
+show_milliseconds = false
+style = "bold gentoo_warn"
+format = "took [$duration]($style) "
+
+[jobs]
+threshold = 1
+symbol = "jobs "
+style = "bold gentoo_muted"
+format = "[$symbol$number]($style) "
+
+[battery]
+full_symbol = "bat"
+charging_symbol = "chg"
+discharging_symbol = "bat"
+format = "[$symbol $percentage]($style) "
+
+[[battery.display]]
+threshold = 30
+style = "bold gentoo_bad"
+
+[[battery.display]]
+threshold = 60
+style = "bold gentoo_warn"
+
+[time]
+disabled = false
+time_format = "%H:%M"
+style = "bold fg:gentoo_text bg:gentoo_dark"
+format = "[](gentoo_dark)[ $time ]($style)[](gentoo_dark) "

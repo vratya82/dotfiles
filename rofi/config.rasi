@@ -1,0 +1,15 @@
+configuration {
+    modi: "drun,run,window";
+    font: "terminus 18";
+
+    matching: "fuzzy";
+    sort: true;
+    case-sensitive: false;
+
+    show-icons: false;
+
+    drun-display-format: "{name}";
+    window-format: "{w}";
+
+}
+

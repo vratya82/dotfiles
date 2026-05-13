@@ -15,9 +15,8 @@ alias clr='clear'
 alias Q='exit'
 alias ll='ls -lhF --color=auto'
 alias la='ls -A'
-alias l='ls -CF'
 alias rs='source ~/.bashrc'
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+alias sDN='sudo shutdown now'
 
 # programs
 alias iF='sudo iftop'
@@ -25,10 +24,8 @@ alias hogs='sudo nethogs -C'
 alias gs='git status'
 alias bt='btop'
 alias ht='htop'
-alias ytF='yt-dlp -f bestvideo+bestaudio'
-
+alias ytF='yt-dlp -f bestvideo+bestaudio --embed-metadata --embed-thumbnail'
+alias ytM='yt-dlp --embed-metadata --embed-thumbnail --extract-audio --audio-format mp3'
 
 # ubuntu/debian
-alias uP='sudo apt update -y; sudo apt upgrade -y; sudo apt autoremove -y; rustup update'
-
-# Git
+alias uP='sudo apt update -y; sudo apt upgrade -y; sudo apt autoremove -y; rustup update; cargo install-update -a; doom doctor; cd ~/hosts; python3 updateHostsFile.py; npm i -g @openai/codex@latest;claude update; cd ~'

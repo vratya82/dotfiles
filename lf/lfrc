@@ -1,0 +1,83 @@
+# ~/.config/lf/lfrc
+
+set shell sh
+set shellopts '-eu'
+set ifs "\n"
+set scrolloff 4
+set hidden true
+set info size:time
+set period 1
+set drawbox true
+set icons true
+set ignorecase true
+
+# Use a cache for expensive previews (PDF renders, thumbnails)
+set previewer ~/.config/lf/preview
+set cleaner ~/.config/lf/clean
+set preview true
+
+# Preview pane behavior
+set ratios 1:2:3
+#set novideo false
+
+# Better search
+map / search
+map n search-next
+map N search-prev
+
+# Quick nav
+map gh cd ~
+map gd cd ~/Downloads
+map gc cd ~/.config
+map gr reload
+
+# Open file using your system opener
+cmd open ${{
+    # lf passes selected file as $f
+    # xdg-open works for most desktop setups
+    xdg-open "$f" >/dev/null 2>&1 &
+}}
+
+map o open
+map O $xdg-open "$f" >/dev/null 2>&1 &
+
+# Edit in $EDITOR
+cmd edit ${{
+    ${EDITOR:-nvim} "$f"
+}}
+map e edit
+
+# Safer delete: send to trash if available, else rm
+cmd trash ${{
+    if command -v trash-put >/dev/null 2>&1; then
+        trash-put "$@"
+    elif command -v gio >/dev/null 2>&1; then
+        gio trash "$@"
+    else
+        rm -rf -- "$@"
+    fi
+}}
+map D trash
+
+# Toggle hidden files
+map zh set hidden!
+
+# Split view presets (optional taste)
+map z1 set ratios 1:1
+map z2 set ratios 1:2
+map z3 set ratios 1:2:3
+
+# Copy current file path to clipboard (xclip/xsel required)
+cmd yankpath ${{
+    if command -v xclip >/dev/null 2>&1; then
+        printf "%s" "$f" | xclip -selection clipboard
+    elif command -v xsel >/dev/null 2>&1; then
+        printf "%s" "$f" | xsel --clipboard --input
+    else
+        printf "%s\n" "$f"
+    fi
+}}
+map yp yankpath
+
+# Keep lf responsive with large dirs
+set dircounts true

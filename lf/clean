@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# ~/.config/lf/clean
+set -eu
+
+UEBERZUGPP="${UEBERZUGPP:-ueberzugpp}"
+
+if command -v "$UEBERZUGPP" >/dev/null 2>&1; then
+  # Remove the image previously drawn
+  printf '{"action":"remove","identifier":"lf-preview"}\n'
+fi

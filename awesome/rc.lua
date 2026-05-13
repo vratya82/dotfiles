@@ -10,7 +10,6 @@ require("awful.autofocus")
 local wibox = require("wibox")
 -- Theme handling library
 local beautiful = require("beautiful")
-local xresources = require("beautiful.xresources")
 -- Notification library
 local naughty = require("naughty")
 local menubar = require("menubar")
@@ -18,9 +17,7 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 -- Enable hotkeys help widget for VIM and other apps
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
--- Compositor and Gaps
-awful.spawn.with_shell("picom")
-local dpi = xresources.apply_dpi
+-- Note: compositor + gaps are configured after theme init below so theme defaults don't overwrite them.
 -- Load Debian menu entries
 local debian = require("debian.menu")
 local has_fdo, freedesktop = pcall(require, "freedesktop")
@@ -52,9 +49,15 @@ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
-beautiful.init(gears.filesystem.get_configuration_dir() .. "themes/gtk/theme.lua")
-beautiful.font = "terminus 10"
-beautiful.useless_gaps = dpi(8)
+beautiful.init(gears.filesystem.get_themes_dir() .. "zenburn/theme.lua")
+
+-- Compositor and gaps
+awful.spawn.with_shell("picom")
+-- Useless gaps (outer spacing between clients)
+beautiful.useless_gap = 7.5
+
+-- Autostart tray apps (avoid duplicates)
+awful.spawn.with_shell("pgrep -u $USER -x blueman-applet >/dev/null || blueman-applet")
 
 -- This is used later as the default terminal and editor to run.
 terminal = "alacritty"
@@ -112,16 +115,6 @@ end
 
 mylauncher = awful.widget.launcher({ image = beautiful.awesome_icon,
                                      menu = mymainmenu })
-local pavucontrol_icon = menubar.utils.lookup_icon("pavucontrol")
-local bluetooth_icon = menubar.utils.lookup_icon("blueman-manager")
-local pavucontrol_launcher = awful.widget.launcher({
-    image = pavucontrol_icon or beautiful.awesome_icon,
-    command = "pavucontrol",
-})
-local bluetooth_launcher = awful.widget.launcher({
-    image = bluetooth_icon or beautiful.awesome_icon,
-    command = "blueman-manager",
-})
 
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
@@ -133,6 +126,38 @@ mykeyboardlayout = awful.widget.keyboardlayout()
 -- {{{ Wibar
 -- Create a textclock widget
 mytextclock = wibox.widget.textclock()
+
+-- Battery widget (updates every 30s)
+-- Reads from /sys/class/power_supply so it works without extra packages.
+-- (Awesome docs: awful.widget.watch)
+local battery_widget = awful.widget.watch(
+    { awful.util.shell, "-c",
+      [[
+        for b in /sys/class/power_supply/BAT*; do
+          [ -d "$b" ] || continue
+          cap=$(cat "$b/capacity" 2>/dev/null)
+          stat=$(cat "$b/status" 2>/dev/null)
+          [ -n "$cap" ] || continue
+          # Normalize status a bit
+          case "$stat" in
+            Charging)    icon="⚡" ;;
+            Discharging) icon="🔋" ;;
+            Full)        icon="🔌" ;;
+            *)           icon="🔋" ;;
+          esac
+          printf "%s %s%%" "$icon" "$cap"
+          exit 0
+        done
+        printf "🔌"
+      ]]
+    },
+    30,
+    function(widget, stdout)
+        stdout = (stdout or ""):gsub("\n", "")
+        widget:set_text(" " .. stdout .. " ")
+    end,
+    wibox.widget.textbox()
+)
 
 -- Create a wibox for each screen and add it
 local taglist_buttons = gears.table.join(
@@ -174,33 +199,15 @@ local tasklist_buttons = gears.table.join(
                                               awful.client.focus.byidx(-1)
                                           end))
 
-local battery_widget = awful.widget.watch(
-    "sh -c 'if [ -d /sys/class/power_supply/BAT0 ]; then " ..
-        "capacity=$(cat /sys/class/power_supply/BAT0/capacity); " ..
-        "status=$(cat /sys/class/power_supply/BAT0/status); " ..
-        "printf \"BAT %s%% %s\" \"$capacity\" \"$status\"; " ..
-    "fi'",
-    30
-)
-
-local function apply_pywal16(wallpaper)
-    if not wallpaper then
-        return
-    end
-    awful.spawn.with_shell(
-        "pywal16 -i " .. gears.shell.quote(wallpaper) ..
-        " && xrdb -load ~/.cache/wal/colors.Xresources"
-    )
-end
-
 local function set_wallpaper(s)
-    local wallpaper = beautiful.wallpaper
-    if type(wallpaper) == "function" then
-        wallpaper = wallpaper(s)
-    end
-    if wallpaper then
+    -- Wallpaper
+    if beautiful.wallpaper then
+        local wallpaper = beautiful.wallpaper
+        -- If wallpaper is a function, call it with the screen
+        if type(wallpaper) == "function" then
+            wallpaper = wallpaper(s)
+        end
         gears.wallpaper.maximized(wallpaper, s, true)
-        apply_pywal16(wallpaper)
     end
 end
 
@@ -212,7 +219,7 @@ awful.screen.connect_for_each_screen(function(s)
     set_wallpaper(s)
 
     -- Each screen has its own tag table.
-    awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
+    awful.tag({ "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX" }, s, awful.layout.layouts[1])
 
     -- Create a promptbox for each screen
     s.mypromptbox = awful.widget.prompt()
@@ -228,20 +235,7 @@ awful.screen.connect_for_each_screen(function(s)
     s.mytaglist = awful.widget.taglist {
         screen  = s,
         filter  = awful.widget.taglist.filter.all,
-        buttons = taglist_buttons,
-        widget_template = {
-            {
-                id = "text_role",
-                widget = wibox.widget.textbox,
-            },
-            layout = wibox.layout.fixed.horizontal,
-            create_callback = function(self, tag)
-                self:set_text(tag.selected and tag.name or "")
-            end,
-            update_callback = function(self, tag)
-                self:set_text(tag.selected and tag.name or "")
-            end,
-        },
+        buttons = taglist_buttons
     }
 
     -- Create a tasklist widget
@@ -252,27 +246,25 @@ awful.screen.connect_for_each_screen(function(s)
     }
 
     -- Create the wibox
-    s.mywibox = awful.wibar({ position = "top", screen = s, height = dpi(28) })
+    s.mywibox = awful.wibar({ position = "top", screen = s })
 
     -- Add widgets to the wibox
     s.mywibox:setup {
         layout = wibox.layout.align.horizontal,
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
-            wibox.container.margin(mylauncher, dpi(6), dpi(6), dpi(4), dpi(4)),
-            wibox.container.margin(s.mytaglist, dpi(4), dpi(4), dpi(2), dpi(2)),
-            wibox.container.margin(s.mypromptbox, dpi(4), dpi(4), dpi(2), dpi(2)),
+            mylauncher,
+            s.mytaglist,
+            s.mypromptbox,
         },
         s.mytasklist, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            wibox.container.margin(mykeyboardlayout, dpi(6), dpi(6), dpi(4), dpi(4)),
-            wibox.container.margin(wibox.widget.systray(), dpi(6), dpi(6), dpi(4), dpi(4)),
-            wibox.container.margin(battery_widget, dpi(6), dpi(6), dpi(4), dpi(4)),
-            wibox.container.margin(mytextclock, dpi(6), dpi(6), dpi(4), dpi(4)),
-            wibox.container.margin(pavucontrol_launcher, dpi(6), dpi(6), dpi(4), dpi(4)),
-            wibox.container.margin(bluetooth_launcher, dpi(6), dpi(6), dpi(4), dpi(4)),
-            wibox.container.margin(s.mylayoutbox, dpi(6), dpi(6), dpi(4), dpi(4)),
+            mykeyboardlayout,
+            battery_widget,
+            wibox.widget.systray(),
+            mytextclock,
+            s.mylayoutbox,
         },
     }
 end)
@@ -335,10 +327,13 @@ globalkeys = gears.table.join(
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.spawn(terminal) end,
               {description = "open a terminal", group = "launcher"}),
-    awful.key({ modkey, "Shift"   }, "r", awesome.restart,
+    awful.key({ modkey, "Control" }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
+    --awful.key({ modkey, "Shift"   }, "q", awesome.quit,
+    --          {description = "quit awesome", group = "awesome"}),
     awful.key({ modkey, "Mod1"    }, "q", awesome.quit,
               {description = "quit awesome", group = "awesome"}),
+
 
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
               {description = "increase master width factor", group = "layout"}),
@@ -369,11 +364,9 @@ globalkeys = gears.table.join(
               end,
               {description = "restore minimized", group = "client"}),
 
-    -- Prompt
-    awful.key({ modkey }, "r", function () awful.spawn("rofi -show drun") end,
-              {description = "rofi launcher", group = "launcher"}),
-    awful.key({ modkey, "Shift" }, "p", function () awful.screen.focused().mypromptbox:run() end,
-              {description = "run prompt", group = "launcher"}),
+    -- Launcher (Rofi)
+    awful.key({ modkey }, "r", function () awful.spawn.with_shell("rofi -show drun") end,
+              {description = "rofi (drun)", group = "launcher"}),
 
     awful.key({ modkey }, "x",
               function ()
@@ -389,54 +382,50 @@ globalkeys = gears.table.join(
     awful.key({ modkey }, "p", function() menubar.show() end,
               {description = "show the menubar", group = "launcher"}),
 
-    awful.key({ }, "Print", function ()
-        awful.spawn("scrot ~/Pictures//screenshots/screenshot-%Y-%m-%d-%H%M%S.png")
-    end, {description = "screenshot", group = "launcher"}),
-
+    -- XMonad-style application launchers
+    awful.key({ }, "Print", function () awful.spawn.with_shell("scrot ~/Pictures//screenshots/screenshot-%Y-%m-%d-%H%M%S.png") end,
+              {description = "take screenshot", group = "launcher"}),
     awful.key({ modkey }, "F1", function () awful.spawn("chromium") end,
-              {description = "launch chromium", group = "launcher"}),
-    awful.key({ modkey }, "F2", function () awful.spawn("thunderbird") end,
-              {description = "launch thunderbird", group = "launcher"}),
-    awful.key({ modkey }, "F3", function () awful.spawn("thunar") end,
-              {description = "launch thunar", group = "launcher"}),
-    awful.key({ modkey }, "F4", function () awful.spawn("keepassxc") end,
-              {description = "launch keepassxc", group = "launcher"}),
-    awful.key({ modkey }, "F5", function () awful.spawn("virt-manager") end,
-              {description = "launch virt-manager", group = "launcher"}),
-    awful.key({ modkey }, "F6", function () awful.spawn("calibre") end,
-              {description = "launch calibre", group = "launcher"}),
-    awful.key({ modkey }, "F7", function () awful.spawn("anki") end,
-              {description = "launch anki", group = "launcher"}),
-    awful.key({ modkey }, "F8", function () awful.spawn("obsidian") end,
-              {description = "launch obsidian", group = "launcher"}),
-    awful.key({ modkey }, "F9", function () awful.spawn(terminal .. " -e bmon") end,
-              {description = "launch bmon", group = "launcher"}),
-    awful.key({ modkey }, "F10", function () awful.spawn(terminal .. " -e htop") end,
-              {description = "launch htop", group = "launcher"}),
-    awful.key({ modkey }, "F11", function () awful.spawn("syncthing") end,
-              {description = "launch syncthing", group = "launcher"}),
-    awful.key({ modkey }, "F12", function () awful.spawn("xscreensaver-command -lock") end,
+              {description = "open chromium", group = "launcher"}),
+    awful.key({ modkey }, "#68", function () awful.spawn("thunderbird") end,
+              {description = "open thunderbird", group = "launcher"}),
+    awful.key({ modkey }, "#69", function () awful.spawn("thunar") end,
+              {description = "open thunar", group = "launcher"}),
+    awful.key({ modkey }, "#70", function () awful.spawn("keepassxc") end,
+              {description = "open keepassxc", group = "launcher"}),
+    awful.key({ modkey }, "#71", function () awful.spawn("virt-manager") end,
+              {description = "open virt-manager", group = "launcher"}),
+    awful.key({ modkey }, "#72", function () awful.spawn("calibre") end,
+              {description = "open calibre", group = "launcher"}),
+    awful.key({ modkey }, "#73", function () awful.spawn("anki") end,
+              {description = "open anki", group = "launcher"}),
+    awful.key({ modkey }, "#74", function () awful.spawn("obsidian") end,
+              {description = "open obsidian", group = "launcher"}),
+    awful.key({ modkey }, "#75", function () awful.spawn(terminal .. " -e bmon") end,
+              {description = "open bmon", group = "launcher"}),
+    awful.key({ modkey }, "#76", function () awful.spawn(terminal .. " -e htop") end,
+              {description = "open htop", group = "launcher"}),
+    awful.key({ modkey }, "#95", function () awful.spawn("syncthing") end,
+              {description = "open syncthing", group = "launcher"}),
+    awful.key({ modkey }, "#96", function () awful.spawn("xscreensaver-command -lock") end,
               {description = "lock screen", group = "launcher"})
 )
 
 clientkeys = gears.table.join(
     awful.key({ modkey,           }, "f",
         function (c)
-            awful.client.floating.set(c, true)
-            awful.placement.maximize(c, { honor_workarea = true, honor_padding = true })
+            c.floating = true
+            c.maximized = true
             c:raise()
         end,
-        {description = "float to fullscreen size", group = "client"}),
-    awful.key({ modkey, "Shift"   }, "t",
-        function (c)
-            awful.client.floating.set(c, false)
-            c.fullscreen = false
-            c.maximized = false
-            c:raise()
-        end,
-        {description = "sink to tiling", group = "client"}),
+        {description = "float maximized", group = "client"}),
     awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end,
               {description = "close", group = "client"}),
+    awful.key({ modkey, "Shift"   }, "t",      function (c)
+                                                     c.maximized = false
+                                                     c.floating = false
+                                                 end,
+              {description = "sink", group = "client"}),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ,
               {description = "toggle floating", group = "client"}),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end,

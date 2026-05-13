@@ -1,7 +1,1 @@
-# ========================
-# Build artifacts
-# ========================
-
-# Andere algemene zaken
-*.log
-*~
+/target
